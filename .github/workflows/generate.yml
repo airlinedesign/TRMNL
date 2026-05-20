@@ -6,6 +6,10 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:   # allow manual trigger
 
+concurrency:
+  group: generate-data
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -29,7 +33,8 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase --autostash origin main
+          git fetch origin main
+          git reset --soft origin/main
           git add api/data.json
           # Only commit if there are changes
           git diff --cached --quiet || git commit -m "chore: update dashboard data [skip ci]"
