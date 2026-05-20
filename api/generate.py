@@ -131,11 +131,12 @@ def fmt_mins(m: int) -> str:
 
 
 def fmt_leave_time(dep_min: int, walk: int) -> str:
-    """Return 'Leave by H:MM' for the minute you need to leave home."""
+    """Return 'leave by H:MMam/pm' for the minute you need to leave home."""
     leave_min = (dep_min - walk) % (24 * 60)
     h, m = divmod(leave_min, 60)
-    hour = h % 12 or 12
-    return f"Leave by {hour}:{m:02d}"
+    suffix = "am" if h < 12 else "pm"
+    hour   = h % 12 or 12
+    return f"leave by {hour}:{m:02d}{suffix}"
 
 
 def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
