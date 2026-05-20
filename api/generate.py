@@ -305,10 +305,20 @@ def main():
         "walk_minutes":  WALK_MINUTES,
     }
 
-    with open("api/data.json", "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-
-    print(f"✓ Generated at {payload['generated_at']} — {headline}")
+    import os
+    webhook_url = os.environ.get("TRMNL_WEBHOOK_URL")
+    if webhook_url:
+        body = json.dumps({"merge_variables": payload}).encode()
+        req  = urllib.request.Request(
+            webhook_url, data=body, method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req) as r:
+            print(f"✓ Pushed to TRMNL: {r.status} — {headline}")
+    else:
+        with open("api/data.json", "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        print(f"✓ Written to data.json — {headline}")
 
 
 if __name__ == "__main__":
