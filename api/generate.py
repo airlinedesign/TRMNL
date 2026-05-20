@@ -15,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 # ── Constants ────────────────────────────────────────────────────────────────
 
 WALK_MINUTES = 9          # minutes from home to platform
-SHOW_TRAINS  = 4          # how many upcoming trains to display
+SHOW_TRAINS  = 2          # how many upcoming trains to display
 TIMEZONE     = timezone(timedelta(hours=9))   # JST
 
 # Nakano, Tokyo
@@ -198,7 +198,12 @@ def main():
     trains  = next_trains(now)
     weather = fetch_weather(LAT, LON)
 
-    # Build the next-train summary string for the headline
+    def fmt_mins(m):
+        if m < 60:
+            return f"{m} min"
+        h, rem = divmod(m, 60)
+        return f"{h}h {rem}m" if rem else f"{h}h"
+
     next_t = trains[0] if trains else None
     if next_t:
         if next_t["leave_home_in"] <= 0:
@@ -206,7 +211,7 @@ def main():
         elif next_t["leave_home_in"] == 1:
             headline = "Leave in 1 min"
         else:
-            headline = f"Leave in {next_t['leave_home_in']} min"
+            headline = f"Leave in {fmt_mins(next_t['leave_home_in'])}"
     else:
         headline = "No more trains today"
 
