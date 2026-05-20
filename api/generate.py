@@ -304,7 +304,7 @@ def main():
     month_names = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
                    "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
 
-    date_main    = f"{day_names[now.weekday()]} {month_names[now.month - 1]} {now.day}"
+    date_main    = f"{day_names[now.weekday()]}, {month_names[now.month - 1]} {now.day}"
     date_ordinal = ordinal(now.day)
     last_update  = fmt_time_short(now.hour * 60 + now.minute, 0)
 
