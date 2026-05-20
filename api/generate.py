@@ -316,7 +316,10 @@ def main():
         print(f"Posting {len(body)} bytes to {webhook_url[:50]}...")
         req  = urllib.request.Request(
             webhook_url, data=body, method="POST",
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent":   "Mozilla/5.0 (compatible; TRMNL-Dashboard/1.0)",
+            },
         )
         try:
             with urllib.request.urlopen(req) as r:
