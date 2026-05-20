@@ -152,14 +152,18 @@
       {% assign l0 = trains[0].leave_home_in %}
       {% if l0 <= 0 %}
         Leave NOW
-      {% elsif l0 == 1 %}
-        Leave in 1 min
-      {% elsif l0 >= 60 %}
-        {% assign l0h = l0 | divided_by: 60 %}
-        {% assign l0m = l0 | modulo: 60 %}
-        Leave in {{ l0h }}h{% if l0m > 0 %} {{ l0m }}m{% endif %}
       {% else %}
-        Leave in {{ l0 }} min
+        {% if l0 == 1 %}
+          Leave in 1 min
+        {% else %}
+          {% if l0 >= 60 %}
+            {% assign l0h = l0 | divided_by: 60 %}
+            {% assign l0m = l0 | modulo: 60 %}
+            Leave in {{ l0h }}h{% if l0m > 0 %} {{ l0m }}m{% endif %}
+          {% else %}
+            Leave in {{ l0 }} min
+          {% endif %}
+        {% endif %}
       {% endif %}
     </span>
     {% if trains[1] %}
