@@ -130,6 +130,14 @@ def fmt_mins(m: int) -> str:
     return f"{h}h {rem}m" if rem else f"{h}h"
 
 
+def fmt_leave_time(dep_min: int, walk: int) -> str:
+    """Return 'Leave by H:MM' for the minute you need to leave home."""
+    leave_min = (dep_min - walk) % (24 * 60)
+    h, m = divmod(leave_min, 60)
+    hour = h % 12 or 12
+    return f"Leave by {hour}:{m:02d}"
+
+
 def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
     """
     Return the next `count` departures from Numabukuro.
@@ -153,7 +161,7 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
         if leave_in <= 0:
             leave_display = "Leave NOW" if mins_until > 0 else "Train departed"
         else:
-            leave_display = f"Leave in {fmt_mins(leave_in)}"
+            leave_display = fmt_leave_time(dep_min, WALK_MINUTES)
 
         results.append({
             "departs":              f"{h:02d}:{m:02d}",
@@ -162,7 +170,7 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
             "leave_home_in":        leave_in,
             "catchable":            leave_in >= 0,
             "leave_display":        leave_display,
-            "next_display":         f"next in {fmt_mins(leave_in)}" if leave_in > 0 else "",
+            "next_display":         fmt_leave_time(dep_min, WALK_MINUTES) if leave_in > 0 else "",
         })
         if len(results) == count:
             break
@@ -187,7 +195,7 @@ def next_buses(now: datetime, count: int = SHOW_BUSES) -> list:
         if leave_in <= 0:
             leave_display = "Leave NOW" if mins_until > 0 else "Bus departed"
         else:
-            leave_display = f"Bus in {fmt_mins(leave_in)}"
+            leave_display = fmt_leave_time(dep_min, WALK_TO_BUS)
 
         results.append({
             "departs":              f"{h:02d}:{m:02d}",
@@ -196,7 +204,7 @@ def next_buses(now: datetime, count: int = SHOW_BUSES) -> list:
             "leave_home_in":        leave_in,
             "catchable":            leave_in >= 0,
             "leave_display":        leave_display,
-            "next_display":         f"next in {fmt_mins(leave_in)}" if leave_in > 0 else "",
+            "next_display":         fmt_leave_time(dep_min, WALK_TO_BUS) if leave_in > 0 else "",
         })
         if len(results) == count:
             break
@@ -273,20 +281,12 @@ def main():
     buses   = next_buses(now)
     weather = fetch_weather(LAT, LON)
 
-    def fmt_mins(m):
-        if m < 60:
-            return f"{m} min"
-        h, rem = divmod(m, 60)
-        return f"{h}h {rem}m" if rem else f"{h}h"
-
     next_t = trains[0] if trains else None
     if next_t:
         if next_t["leave_home_in"] <= 0:
             headline = "Leave NOW" if next_t["minutes_until_depart"] > 0 else "Train departed"
-        elif next_t["leave_home_in"] == 1:
-            headline = "Leave in 1 min"
         else:
-            headline = f"Leave in {fmt_mins(next_t['leave_home_in'])}"
+            headline = next_t["leave_display"]
     else:
         headline = "No more trains today"
 
