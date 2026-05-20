@@ -1,48 +1,39 @@
 {
-  "generated_at": "00:59 JST",
+  "generated_at": "01:56 JST",
   "day_type": "Weekday",
-  "headline": "Leave in 269 min",
+  "headline": "Leave in 3h 32m",
   "trains": [
     {
       "departs": "05:37",
       "arrive_shinjuku": "05:49",
-      "minutes_until_depart": 278,
-      "leave_home_in": 269,
-      "catchable": true
+      "minutes_until_depart": 221,
+      "leave_home_in": 212,
+      "catchable": true,
+      "leave_display": "Leave in 3h 32m",
+      "next_display": "next in 3h 32m"
     },
     {
       "departs": "05:46",
       "arrive_shinjuku": "05:58",
-      "minutes_until_depart": 287,
-      "leave_home_in": 278,
-      "catchable": true
-    },
-    {
-      "departs": "06:02",
-      "arrive_shinjuku": "06:14",
-      "minutes_until_depart": 303,
-      "leave_home_in": 294,
-      "catchable": true
-    },
-    {
-      "departs": "06:18",
-      "arrive_shinjuku": "06:30",
-      "minutes_until_depart": 319,
-      "leave_home_in": 310,
-      "catchable": true
+      "minutes_until_depart": 230,
+      "leave_home_in": 221,
+      "catchable": true,
+      "leave_display": "Leave in 3h 41m",
+      "next_display": "next in 3h 41m"
     }
   ],
   "weather": {
-    "temp_c": 20,
-    "feels_like_c": 23,
-    "humidity_pct": 93,
+    "temp_c": 19,
+    "feels_like_c": 22,
+    "humidity_pct": 95,
     "wind_kmh": 2,
-    "description": "Overcast",
-    "icon": "☁️",
+    "description": "Mainly clear",
+    "icon": "🌤",
     "high_c": 20,
     "low_c": 15,
     "umbrella": true,
     "precip_mm": 12.6
   },
+  "weather_icon": "☂",
   "walk_minutes": 9
 }
