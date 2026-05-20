@@ -1,54 +1,54 @@
 {
-  "generated_at": "02:53 JST",
+  "generated_at": "03:00 JST",
   "day_type": "Weekday",
-  "headline": "Leave in 2h 35m",
+  "headline": "Leave in 2h 28m",
   "trains": [
     {
       "departs": "05:37",
       "arrive_shinjuku": "05:49",
-      "minutes_until_depart": 164,
-      "leave_home_in": 155,
+      "minutes_until_depart": 157,
+      "leave_home_in": 148,
       "catchable": true,
-      "leave_display": "Leave in 2h 35m",
-      "next_display": "next in 2h 35m"
+      "leave_display": "Leave in 2h 28m",
+      "next_display": "next in 2h 28m"
     },
     {
       "departs": "05:46",
       "arrive_shinjuku": "05:58",
-      "minutes_until_depart": 173,
-      "leave_home_in": 164,
+      "minutes_until_depart": 166,
+      "leave_home_in": 157,
       "catchable": true,
-      "leave_display": "Leave in 2h 44m",
-      "next_display": "next in 2h 44m"
+      "leave_display": "Leave in 2h 37m",
+      "next_display": "next in 2h 37m"
     }
   ],
   "buses": [
     {
       "departs": "06:42",
       "arrive_nakano": "06:47",
-      "minutes_until_depart": 229,
-      "leave_home_in": 225,
+      "minutes_until_depart": 222,
+      "leave_home_in": 218,
       "catchable": true,
-      "leave_display": "Bus in 3h 45m",
-      "next_display": "next in 3h 45m"
+      "leave_display": "Bus in 3h 38m",
+      "next_display": "next in 3h 38m"
     },
     {
       "departs": "07:01",
       "arrive_nakano": "07:06",
-      "minutes_until_depart": 248,
-      "leave_home_in": 244,
+      "minutes_until_depart": 241,
+      "leave_home_in": 237,
       "catchable": true,
-      "leave_display": "Bus in 4h 4m",
-      "next_display": "next in 4h 4m"
+      "leave_display": "Bus in 3h 57m",
+      "next_display": "next in 3h 57m"
     }
   ],
-  "bus_display": "Bus in 3h 45m",
-  "bus_next": "next in 4h 4m",
+  "bus_display": "Bus in 3h 38m",
+  "bus_next": "next in 3h 57m",
   "weather": {
     "temp_c": 19,
     "feels_like_c": 22,
     "humidity_pct": 98,
-    "wind_kmh": 4,
+    "wind_kmh": 3,
     "description": "Mainly clear",
     "icon": "🌤",
     "high_c": 20,
