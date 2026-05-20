@@ -38,4 +38,4 @@ jobs:
           git add api/data.json
           # Only commit if there are changes
           git diff --cached --quiet || git commit -m "chore: update dashboard data [skip ci]"
-          git push
+          git push --force-with-lease
