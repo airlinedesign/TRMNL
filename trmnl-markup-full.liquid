@@ -1,0 +1,312 @@
+{{- /* ─────────────────────────────────────────────────────
+     TRMNL Plugin: Tokyo Transit + Weather
+     Polling URL: https://<YOUR_GH_USERNAME>.github.io/<REPO>/api/data.json
+     Refresh:     Every 5 minutes
+     Layout:      Full screen
+──────────────────────────────────────────────────── */ -}}
+
+<style>
+  /* ── Reset & base ─────────────────────────────────── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body, .trmnl {
+    font-family: "Inter", sans-serif;
+    background: #fff;
+    color: #000;
+    width: 800px;
+    height: 480px;
+    overflow: hidden;
+  }
+
+  .screen {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+    padding: 18px 20px 14px;
+    gap: 10px;
+  }
+
+  /* ── Header row ───────────────────────────────────── */
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+  }
+
+  .header__title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  .header__updated {
+    font-size: 11px;
+    opacity: 0.4;
+  }
+
+  /* ── Headline ─────────────────────────────────────── */
+  .headline {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 4px 0 2px;
+  }
+
+  .headline__cta {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .headline__dest {
+    font-size: 13px;
+    opacity: 0.5;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .headline__dest span {
+    display: block;
+    font-size: 15px;
+    opacity: 1;
+    font-weight: 600;
+    color: #000;
+  }
+
+  /* ── Train table ──────────────────────────────────── */
+  .trains {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    flex: 1;
+  }
+
+  .train-card {
+    border: 1.5px solid #000;
+    border-radius: 8px;
+    padding: 10px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    position: relative;
+  }
+
+  .train-card--missed {
+    border-style: dashed;
+    opacity: 0.38;
+  }
+
+  .train-card--next {
+    background: #000;
+    color: #fff;
+  }
+
+  .train-card__label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+
+  .train-card--next .train-card__label {
+    opacity: 0.6;
+  }
+
+  .train-card__depart {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .train-card__arrive {
+    font-size: 11px;
+    opacity: 0.55;
+    margin-top: 2px;
+  }
+
+  .train-card__leave {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid currentColor;
+    opacity: 0.7;
+  }
+
+  .train-card--next .train-card__leave {
+    opacity: 0.85;
+  }
+
+  .train-card__leave--urgent {
+    opacity: 1 !important;
+  }
+
+  /* ── Weather strip ────────────────────────────────── */
+  .weather {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1.5px solid #000;
+    padding-top: 10px;
+  }
+
+  .weather__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .weather__icon {
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  .weather__temp {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .weather__desc {
+    font-size: 12px;
+    opacity: 0.55;
+    margin-top: 1px;
+  }
+
+  .weather__meta {
+    display: flex;
+    gap: 18px;
+  }
+
+  .weather__stat {
+    text-align: center;
+  }
+
+  .weather__stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.45;
+    font-weight: 600;
+  }
+
+  .weather__stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .weather__umbrella {
+    font-size: 11px;
+    font-weight: 600;
+    background: #000;
+    color: #fff;
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+</style>
+
+<div class="screen">
+
+  {{- /* ── Header ──────────────────────────────────────── */ -}}
+  <div class="header">
+    <span class="header__title">
+      沼袋 → 西武新宿 &nbsp;·&nbsp; Seibu Shinjuku Line
+    </span>
+    <span class="header__updated">
+      {{ generated_at }} &nbsp;·&nbsp; {{ day_type }}
+    </span>
+  </div>
+
+  {{- /* ── Main content: headline + train cards ─────────── */ -}}
+  <div>
+    <div class="headline">
+      <div class="headline__cta">{{ headline }}</div>
+      <div class="headline__dest">
+        to catch next train at
+        {% if trains[0] %}
+          <span>{{ trains[0].departs }}</span>
+        {% else %}
+          <span>—</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="trains" style="margin-top: 14px;">
+      {% for train in trains %}
+        {% assign idx = forloop.index0 %}
+        {% if train.catchable %}
+          {% assign card_class = "train-card" %}
+        {% else %}
+          {% assign card_class = "train-card train-card--missed" %}
+        {% endif %}
+        {% if idx == 0 and train.catchable %}
+          {% assign card_class = "train-card train-card--next" %}
+        {% endif %}
+
+        <div class="{{ card_class }}">
+          <div class="train-card__label">
+            {% if idx == 0 %}Next{% elsif idx == 1 %}Then{% elsif idx == 2 %}+2{% else %}+3{% endif %}
+          </div>
+          <div class="train-card__depart">{{ train.departs }}</div>
+          <div class="train-card__arrive">arr. {{ train.arrive_shinjuku }}</div>
+          <div class="train-card__leave{% if train.leave_home_in <= 2 and train.catchable %} train-card__leave--urgent{% endif %}">
+            {% if train.leave_home_in <= 0 %}
+              Leave NOW
+            {% elsif train.leave_home_in == 1 %}
+              Leave in 1 min
+            {% elsif train.catchable %}
+              Leave in {{ train.leave_home_in }} min
+            {% else %}
+              Missed
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {{- /* ── Weather ──────────────────────────────────────── */ -}}
+  <div class="weather">
+    <div class="weather__left">
+      <div class="weather__icon">{{ weather.icon }}</div>
+      <div>
+        <div class="weather__temp">{{ weather.temp_c }}°</div>
+        <div class="weather__desc">{{ weather.description }} · feels {{ weather.feels_like_c }}°</div>
+      </div>
+    </div>
+
+    <div class="weather__meta">
+      <div class="weather__stat">
+        <div class="weather__stat-label">High</div>
+        <div class="weather__stat-value">{{ weather.high_c }}°</div>
+      </div>
+      <div class="weather__stat">
+        <div class="weather__stat-label">Low</div>
+        <div class="weather__stat-value">{{ weather.low_c }}°</div>
+      </div>
+      <div class="weather__stat">
+        <div class="weather__stat-label">Humidity</div>
+        <div class="weather__stat-value">{{ weather.humidity_pct }}%</div>
+      </div>
+      <div class="weather__stat">
+        <div class="weather__stat-label">Wind</div>
+        <div class="weather__stat-value">{{ weather.wind_kmh }}k</div>
+      </div>
+      {% if weather.umbrella %}
+        <div class="weather__stat" style="display:flex; align-items:center;">
+          <div class="weather__umbrella">☂ Take umbrella</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
