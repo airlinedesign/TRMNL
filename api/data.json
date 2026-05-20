@@ -1,0 +1,48 @@
+{
+  "generated_at": "00:59 JST",
+  "day_type": "Weekday",
+  "headline": "Leave in 269 min",
+  "trains": [
+    {
+      "departs": "05:37",
+      "arrive_shinjuku": "05:49",
+      "minutes_until_depart": 278,
+      "leave_home_in": 269,
+      "catchable": true
+    },
+    {
+      "departs": "05:46",
+      "arrive_shinjuku": "05:58",
+      "minutes_until_depart": 287,
+      "leave_home_in": 278,
+      "catchable": true
+    },
+    {
+      "departs": "06:02",
+      "arrive_shinjuku": "06:14",
+      "minutes_until_depart": 303,
+      "leave_home_in": 294,
+      "catchable": true
+    },
+    {
+      "departs": "06:18",
+      "arrive_shinjuku": "06:30",
+      "minutes_until_depart": 319,
+      "leave_home_in": 310,
+      "catchable": true
+    }
+  ],
+  "weather": {
+    "temp_c": 20,
+    "feels_like_c": 23,
+    "humidity_pct": 93,
+    "wind_kmh": 2,
+    "description": "Overcast",
+    "icon": "☁️",
+    "high_c": 20,
+    "low_c": 15,
+    "umbrella": true,
+    "precip_mm": 12.6
+  },
+  "walk_minutes": 9
+}
