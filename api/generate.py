@@ -14,9 +14,12 @@ from datetime import datetime, timezone, timedelta
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-WALK_MINUTES = 9          # minutes from home to platform
-SHOW_TRAINS  = 2          # how many upcoming trains to display
-TIMEZONE     = timezone(timedelta(hours=9))   # JST
+WALK_MINUTES  = 9          # minutes from home to train platform
+WALK_TO_BUS   = 4          # minutes from home to bus stop
+BUS_RIDE      = 5          # minutes from 哲学堂公園入口 to Nakano Station
+SHOW_TRAINS   = 2
+SHOW_BUSES    = 2
+TIMEZONE      = timezone(timedelta(hours=9))   # JST
 
 # Nakano, Tokyo
 LAT = 35.7074
@@ -88,6 +91,30 @@ WEEKEND = [
     (23, 10), (23, 25), (23, 40), (23, 55),
 ]
 
+# ── Bus timetable ─────────────────────────────────────────────────────────────
+# 関東バス 中12 — 哲学堂公園入口 → 中野駅 (southbound on Nakano Dori)
+# Source: ekitan.com (weekday schedule, verified 2025-07)
+# TODO: add actual weekend schedule; using weekday as placeholder
+BUS_12_WEEKDAY = [
+    (6, 42),
+    (7,  1), (7, 19), (7, 32), (7, 42), (7, 55),
+    (8,  7), (8, 19), (8, 32), (8, 45), (8, 58),
+    (9, 12), (9, 26), (9, 47),
+    (10,  8), (10, 31), (10, 57),
+    (11, 23), (11, 49),
+    (12, 15), (12, 41),
+    (13,  7), (13, 33),
+    (14,  0), (14, 27), (14, 54),
+    (15, 18), (15, 42),
+    (16,  6), (16, 30), (16, 54),
+    (17, 18), (17, 42),
+    (18,  6), (18, 30), (18, 54),
+    (19, 18), (19, 42),
+    (20,  7), (20, 37),
+    (21,  7), (21, 52),
+]
+BUS_12_WEEKEND = BUS_12_WEEKDAY  # placeholder until ODPT key available
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def get_schedule(now: datetime) -> list:
@@ -131,6 +158,40 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
         results.append({
             "departs":              f"{h:02d}:{m:02d}",
             "arrive_shinjuku":      f"{arr_h:02d}:{arr_m:02d}",
+            "minutes_until_depart": mins_until,
+            "leave_home_in":        leave_in,
+            "catchable":            leave_in >= 0,
+            "leave_display":        leave_display,
+            "next_display":         f"next in {fmt_mins(leave_in)}" if leave_in > 0 else "",
+        })
+        if len(results) == count:
+            break
+
+    return results
+
+
+def next_buses(now: datetime, count: int = SHOW_BUSES) -> list:
+    schedule = BUS_12_WEEKDAY if now.weekday() < 5 else BUS_12_WEEKEND
+    now_min  = now.hour * 60 + now.minute
+
+    results = []
+    for (h, m) in schedule:
+        dep_min = h * 60 + m
+        if dep_min < now_min - 2:
+            continue
+        mins_until = dep_min - now_min
+        leave_in   = mins_until - WALK_TO_BUS
+        arr_min    = dep_min + BUS_RIDE
+        arr_h, arr_m = divmod(arr_min % (24 * 60), 60)
+
+        if leave_in <= 0:
+            leave_display = "Leave NOW" if mins_until > 0 else "Bus departed"
+        else:
+            leave_display = f"Bus in {fmt_mins(leave_in)}"
+
+        results.append({
+            "departs":              f"{h:02d}:{m:02d}",
+            "arrive_nakano":        f"{arr_h:02d}:{arr_m:02d}",
             "minutes_until_depart": mins_until,
             "leave_home_in":        leave_in,
             "catchable":            leave_in >= 0,
@@ -209,6 +270,7 @@ def main():
     now = datetime.now(TIMEZONE)
 
     trains  = next_trains(now)
+    buses   = next_buses(now)
     weather = fetch_weather(LAT, LON)
 
     def fmt_mins(m):
@@ -235,6 +297,9 @@ def main():
         "day_type":      day_type,
         "headline":      headline,
         "trains":        trains,
+        "buses":         buses,
+        "bus_display":   buses[0]["leave_display"] if buses else "No more buses",
+        "bus_next":      buses[1]["next_display"] if len(buses) > 1 else "",
         "weather":       weather,
         "weather_icon":  "☂" if weather["umbrella"] else "🎩",
         "walk_minutes":  WALK_MINUTES,

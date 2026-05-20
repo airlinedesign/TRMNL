@@ -19,9 +19,9 @@
 
   .screen {
     display: grid;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto 1fr;
     height: 100%;
-    padding: 18px 20px 14px 20px;
+    padding: 18px 36px 14px 20px;
     gap: 12px;
   }
 
@@ -69,6 +69,40 @@
     font-size: 20px;
     font-weight: 500;
     opacity: 0.5;
+  }
+
+  .bus-line {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .bus-line__primary {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    opacity: 0.75;
+  }
+
+  .bus-line__sep {
+    font-size: 16px;
+    opacity: 0.2;
+    font-weight: 300;
+  }
+
+  .bus-line__next {
+    font-size: 16px;
+    font-weight: 500;
+    opacity: 0.4;
+  }
+
+  .bus-line__label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.35;
   }
 
   .weather {
@@ -146,6 +180,13 @@
     <span class="trains-line__primary">{{ trains[0].leave_display }}</span>
     <span class="trains-line__sep">·</span>
     <span class="trains-line__next">{{ trains[1].next_display }}</span>
+  </div>
+
+  <div class="bus-line">
+    <span class="bus-line__label">中12</span>
+    <span class="bus-line__primary">{{ bus_display }}</span>
+    <span class="bus-line__sep">·</span>
+    <span class="bus-line__next">{{ bus_next }}</span>
   </div>
 
   <div class="weather">
