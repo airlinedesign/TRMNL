@@ -96,12 +96,17 @@ def get_schedule(now: datetime) -> list:
     return WEEKDAY if now.weekday() < 5 else WEEKEND
 
 
+def fmt_mins(m: int) -> str:
+    if m < 60:
+        return f"{m} min"
+    h, rem = divmod(m, 60)
+    return f"{h}h {rem}m" if rem else f"{h}h"
+
+
 def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
     """
     Return the next `count` departures from Numabukuro.
-    Each entry: { "departs": "HH:MM", "arrive_shinjuku": "HH:MM",
-                  "minutes_until_depart": int, "leave_home_in": int,
-                  "catchable": bool }
+    Each entry includes pre-formatted display strings for the Liquid template.
     Travel time Numabukuro → Seibu-Shinjuku ≈ 12 minutes.
     """
     schedule = get_schedule(now)
@@ -117,12 +122,20 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
         leave_in   = mins_until - WALK_MINUTES
         arr_min    = dep_min + 12   # 12-min ride
         arr_h, arr_m = divmod(arr_min % (24 * 60), 60)
+
+        if leave_in <= 0:
+            leave_display = "Leave NOW" if mins_until > 0 else "Train departed"
+        else:
+            leave_display = f"Leave in {fmt_mins(leave_in)}"
+
         results.append({
-            "departs":             f"{h:02d}:{m:02d}",
-            "arrive_shinjuku":     f"{arr_h:02d}:{arr_m:02d}",
+            "departs":              f"{h:02d}:{m:02d}",
+            "arrive_shinjuku":      f"{arr_h:02d}:{arr_m:02d}",
             "minutes_until_depart": mins_until,
             "leave_home_in":        leave_in,
             "catchable":            leave_in >= 0,
+            "leave_display":        leave_display,
+            "next_display":         f"next in {fmt_mins(leave_in)}" if leave_in > 0 else "",
         })
         if len(results) == count:
             break
@@ -223,6 +236,7 @@ def main():
         "headline":      headline,
         "trains":        trains,
         "weather":       weather,
+        "weather_icon":  "☂" if weather["umbrella"] else "🎩",
         "walk_minutes":  WALK_MINUTES,
     }
 

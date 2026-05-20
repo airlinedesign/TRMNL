@@ -25,7 +25,6 @@
     gap: 12px;
   }
 
-  /* ── Header ── */
   .header {
     display: flex;
     align-items: baseline;
@@ -47,7 +46,6 @@
     opacity: 0.4;
   }
 
-  /* ── Train line ── */
   .trains-line {
     display: flex;
     align-items: baseline;
@@ -73,7 +71,6 @@
     opacity: 0.5;
   }
 
-  /* ── Weather ── */
   .weather {
     display: flex;
     align-items: center;
@@ -136,7 +133,6 @@
 
 <div class="screen">
 
-  {{- /* ── Header ── */ -}}
   <div class="header">
     <span class="header__title">
       沼袋 → 西武新宿 &nbsp;·&nbsp; Seibu Shinjuku Line
@@ -146,47 +142,14 @@
     </span>
   </div>
 
-  {{- /* ── Train line ── */ -}}
   <div class="trains-line">
-    <span class="trains-line__primary">
-      {% assign l0 = trains[0].leave_home_in %}
-      {% if l0 <= 0 %}
-        Leave NOW
-      {% else %}
-        {% if l0 == 1 %}
-          Leave in 1 min
-        {% else %}
-          {% if l0 >= 60 %}
-            {% assign l0h = l0 | divided_by: 60 %}
-            {% assign l0m = l0 | modulo: 60 %}
-            Leave in {{ l0h }}h{% if l0m > 0 %} {{ l0m }}m{% endif %}
-          {% else %}
-            Leave in {{ l0 }} min
-          {% endif %}
-        {% endif %}
-      {% endif %}
-    </span>
-    {% if trains[1] %}
-      <span class="trains-line__sep">·</span>
-      <span class="trains-line__next">
-        next in
-        {% assign l1 = trains[1].leave_home_in %}
-        {% if l1 >= 60 %}
-          {% assign l1h = l1 | divided_by: 60 %}
-          {% assign l1m = l1 | modulo: 60 %}
-          {{ l1h }}h{% if l1m > 0 %} {{ l1m }}m{% endif %}
-        {% else %}
-          {{ l1 }} min
-        {% endif %}
-      </span>
-    {% endif %}
+    <span class="trains-line__primary">{{ trains[0].leave_display }}</span>
+    <span class="trains-line__sep">·</span>
+    <span class="trains-line__next">{{ trains[1].next_display }}</span>
   </div>
 
-  {{- /* ── Weather ── */ -}}
   <div class="weather">
-    <div class="weather__icon">
-      {% if weather.umbrella %}☂{% else %}🎩{% endif %}
-    </div>
+    <div class="weather__icon">{{ weather_icon }}</div>
     <div class="weather__temp-block">
       <div class="weather__temp">{{ weather.temp_c }}°</div>
       <div class="weather__desc">{{ weather.description }} · feels {{ weather.feels_like_c }}°</div>
