@@ -1,49 +1,49 @@
 {
-  "generated_at": "02:48 JST",
+  "generated_at": "02:53 JST",
   "day_type": "Weekday",
-  "headline": "Leave in 2h 40m",
+  "headline": "Leave in 2h 35m",
   "trains": [
     {
       "departs": "05:37",
       "arrive_shinjuku": "05:49",
-      "minutes_until_depart": 169,
-      "leave_home_in": 160,
+      "minutes_until_depart": 164,
+      "leave_home_in": 155,
       "catchable": true,
-      "leave_display": "Leave in 2h 40m",
-      "next_display": "next in 2h 40m"
+      "leave_display": "Leave in 2h 35m",
+      "next_display": "next in 2h 35m"
     },
     {
       "departs": "05:46",
       "arrive_shinjuku": "05:58",
-      "minutes_until_depart": 178,
-      "leave_home_in": 169,
+      "minutes_until_depart": 173,
+      "leave_home_in": 164,
       "catchable": true,
-      "leave_display": "Leave in 2h 49m",
-      "next_display": "next in 2h 49m"
+      "leave_display": "Leave in 2h 44m",
+      "next_display": "next in 2h 44m"
     }
   ],
   "buses": [
     {
       "departs": "06:42",
       "arrive_nakano": "06:47",
-      "minutes_until_depart": 234,
-      "leave_home_in": 230,
+      "minutes_until_depart": 229,
+      "leave_home_in": 225,
       "catchable": true,
-      "leave_display": "Bus in 3h 50m",
-      "next_display": "next in 3h 50m"
+      "leave_display": "Bus in 3h 45m",
+      "next_display": "next in 3h 45m"
     },
     {
       "departs": "07:01",
       "arrive_nakano": "07:06",
-      "minutes_until_depart": 253,
-      "leave_home_in": 249,
+      "minutes_until_depart": 248,
+      "leave_home_in": 244,
       "catchable": true,
-      "leave_display": "Bus in 4h 9m",
-      "next_display": "next in 4h 9m"
+      "leave_display": "Bus in 4h 4m",
+      "next_display": "next in 4h 4m"
     }
   ],
-  "bus_display": "Bus in 3h 50m",
-  "bus_next": "next in 4h 9m",
+  "bus_display": "Bus in 3h 45m",
+  "bus_next": "next in 4h 4m",
   "weather": {
     "temp_c": 19,
     "feels_like_c": 22,
