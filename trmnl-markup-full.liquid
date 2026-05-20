@@ -177,9 +177,9 @@
   </div>
 
   <div class="trains-line">
-    <span class="trains-line__primary">{{ trains[0].leave_display }}</span>
+    <span class="trains-line__primary">{{ train_display }}</span>
     <span class="trains-line__sep">·</span>
-    <span class="trains-line__next">then {{ trains[1].next_display }}</span>
+    <span class="trains-line__next">then {{ train_next }}</span>
   </div>
 
   <div class="bus-line">
@@ -192,21 +192,21 @@
   <div class="weather">
     <div class="weather__icon">{{ weather_icon }}</div>
     <div class="weather__temp-block">
-      <div class="weather__temp">{{ weather.temp_c }}°</div>
-      <div class="weather__desc">{{ weather.description }} · feels {{ weather.feels_like_c }}°</div>
+      <div class="weather__temp">{{ temp_c }}°</div>
+      <div class="weather__desc">{{ description }} · feels {{ feels_like_c }}°</div>
     </div>
     <div class="weather__stats">
       <div class="weather__stat">
         <span class="weather__stat-label">High</span>
-        <span class="weather__stat-value">{{ weather.high_c }}°</span>
+        <span class="weather__stat-value">{{ high_c }}°</span>
       </div>
       <div class="weather__stat">
         <span class="weather__stat-label">Low</span>
-        <span class="weather__stat-value">{{ weather.low_c }}°</span>
+        <span class="weather__stat-value">{{ low_c }}°</span>
       </div>
       <div class="weather__stat">
         <span class="weather__stat-label">Humidity</span>
-        <span class="weather__stat-value">{{ weather.humidity_pct }}%</span>
+        <span class="weather__stat-value">{{ humidity_pct }}%</span>
       </div>
     </div>
   </div>

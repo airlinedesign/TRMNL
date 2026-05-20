@@ -293,16 +293,19 @@ def main():
     day_type = "Weekday" if now.weekday() < 5 else "Weekend"
 
     payload = {
-        "generated_at":  now.strftime("%H:%M JST"),
-        "day_type":      day_type,
-        "headline":      headline,
-        "trains":        trains,
-        "buses":         buses,
-        "bus_display":   buses[0]["leave_display"] if buses else "No more buses",
-        "bus_next":      buses[1]["next_display"] if len(buses) > 1 else "",
-        "weather":       weather,
-        "weather_icon":  "☂" if weather["umbrella"] else "🎩",
-        "walk_minutes":  WALK_MINUTES,
+        "generated_at":   now.strftime("%H:%M JST"),
+        "day_type":       day_type,
+        "train_display":  trains[0]["leave_display"] if trains else "No more trains",
+        "train_next":     trains[1]["next_display"]  if len(trains) > 1 else "",
+        "bus_display":    buses[0]["leave_display"]  if buses else "No more buses",
+        "bus_next":       buses[1]["next_display"]   if len(buses) > 1 else "",
+        "temp_c":         weather["temp_c"],
+        "feels_like_c":   weather["feels_like_c"],
+        "description":    weather["description"],
+        "high_c":         weather["high_c"],
+        "low_c":          weather["low_c"],
+        "humidity_pct":   weather["humidity_pct"],
+        "weather_icon":   "☂" if weather["umbrella"] else "🎩",
     }
 
     import os
@@ -314,11 +317,11 @@ def main():
             headers={"Content-Type": "application/json"},
         )
         with urllib.request.urlopen(req) as r:
-            print(f"✓ Pushed to TRMNL: {r.status} — {headline}")
+            print(f"✓ Pushed to TRMNL: {r.status} — {payload['train_display']}")
     else:
         with open("api/data.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-        print(f"✓ Written to data.json — {headline}")
+        print(f"✓ Written to data.json — {payload['train_display']}")
 
 
 if __name__ == "__main__":
