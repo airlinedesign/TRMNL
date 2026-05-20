@@ -1,10 +1,3 @@
-{{- /* ─────────────────────────────────────────────────────
-     TRMNL Plugin: Tokyo Transit + Weather
-     Polling URL: https://airlinedesign.github.io/TRMNL/api/data.json
-     Refresh:     Every 5 minutes
-     Layout:      Full screen
-──────────────────────────────────────────────────── */ -}}
-
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,196 +11,248 @@
   }
 
   .screen {
-    display: grid;
-    grid-template-rows: auto auto auto 1fr;
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    padding: 18px 36px 14px 20px;
-    gap: 12px;
+    padding: 20px 28px 16px 24px;
+    gap: 0;
   }
 
+  /* ── Header ── */
   .header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    border-bottom: 2px solid #000;
-    padding-bottom: 8px;
+    padding-bottom: 14px;
   }
 
-  .header__title {
+  .date {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .date-ordinal {
+    font-size: 24px;
+    font-weight: 700;
+    vertical-align: super;
+  }
+
+  .last-update {
     font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    opacity: 0.45;
+    align-self: flex-end;
+    padding-bottom: 6px;
+  }
+
+  /* ── Transit rows ── */
+  .transit-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 0;
+    border-top: 1.5px solid #000;
+  }
+
+  .transit-icon {
+    flex-shrink: 0;
+    width: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .transit-info {
+    flex: 1;
+  }
+
+  .transit-label {
+    font-size: 12px;
+    opacity: 0.5;
+    margin-bottom: 4px;
+  }
+
+  .transit-times {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .time-primary {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-transform: capitalize;
+  }
+
+  .time-sep {
+    font-size: 28px;
+    font-weight: 300;
+    opacity: 0.25;
+  }
+
+  .time-secondary {
+    font-size: 28px;
+    font-weight: 500;
     opacity: 0.55;
   }
 
-  .header__updated {
-    font-size: 11px;
+  /* ── Weather ── */
+  .weather-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding-top: 14px;
+    border-top: 1.5px solid #000;
+    margin-top: auto;
+  }
+
+  .weather-icon-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-right: 28px;
+    flex-shrink: 0;
+  }
+
+  .weather-icon {
+    font-size: 52px;
+    line-height: 1;
+  }
+
+  .weather-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    opacity: 0.5;
+  }
+
+  .weather-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    padding-left: 16px;
+    border-left: 1px solid rgba(0,0,0,0.12);
+  }
+
+  .weather-stat:first-of-type {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     opacity: 0.4;
   }
 
-  .trains-line {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-  }
-
-  .trains-line__primary {
-    font-size: 32px;
+  .stat-value {
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
   }
 
-  .trains-line__sep {
-    font-size: 22px;
-    opacity: 0.25;
-    font-weight: 300;
-  }
-
-  .trains-line__next {
-    font-size: 20px;
+  .stat-value .low {
+    font-size: 18px;
     font-weight: 500;
-    opacity: 0.5;
+    opacity: 0.6;
   }
 
-  .bus-line {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-  }
-
-  .bus-line__primary {
+  .stat-value .slash {
     font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1;
-    opacity: 0.75;
-  }
-
-  .bus-line__sep {
-    font-size: 16px;
-    opacity: 0.2;
     font-weight: 300;
-  }
-
-  .bus-line__next {
-    font-size: 16px;
-    font-weight: 500;
     opacity: 0.4;
-  }
-
-  .bus-line__label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.35;
-  }
-
-  .weather {
-    display: flex;
-    align-items: center;
-    border-top: 1.5px solid #000;
-    padding-top: 14px;
-    gap: 28px;
-  }
-
-  .weather__icon {
-    font-size: 96px;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  .weather__temp-block {
-    flex-shrink: 0;
-  }
-
-  .weather__temp {
-    font-size: 80px;
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  .weather__desc {
-    font-size: 14px;
-    opacity: 0.5;
-    margin-top: 4px;
-  }
-
-  .weather__stats {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-left: auto;
-  }
-
-  .weather__stat {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-  }
-
-  .weather__stat-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    opacity: 0.4;
-    font-weight: 600;
-    width: 72px;
-  }
-
-  .weather__stat-value {
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1;
   }
 </style>
 
 <div class="screen">
 
   <div class="header">
-    <span class="header__title">
-      沼袋 → 西武新宿 &nbsp;·&nbsp; Seibu Shinjuku Line
-    </span>
-    <span class="header__updated">
-      {{ generated_at }} &nbsp;·&nbsp; {{ day_type }}
-    </span>
+    <div class="date">{{ date_main }}<span class="date-ordinal">{{ date_ordinal }}</span></div>
+    <div class="last-update">Last update {{ last_update }}</div>
   </div>
 
-  <div class="trains-line">
-    <span class="trains-line__primary" style="text-transform:capitalize;">{{ train_display }}</span>
-    <span class="trains-line__sep">·</span>
-    <span class="trains-line__next">then {{ train_next }}</span>
-  </div>
-
-  <div class="bus-line">
-    <span class="bus-line__label">中12</span>
-    <span class="bus-line__primary">{{ bus_display }}</span>
-    <span class="bus-line__sep">·</span>
-    <span class="bus-line__next">then {{ bus_next }}</span>
-  </div>
-
-  <div class="weather">
-    <div class="weather__icon">{{ weather_icon }}</div>
-    <div class="weather__temp-block">
-      <div class="weather__temp">{{ temp_c }}°</div>
-      <div class="weather__desc">{{ description }} · feels {{ feels_like_c }}°</div>
+  <div class="transit-row">
+    <div class="transit-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="52" height="62" viewBox="0 0 52 62">
+        <rect x="2" y="4" width="48" height="44" rx="8" fill="#000"/>
+        <rect x="7" y="11" width="15" height="12" rx="3" fill="#fff"/>
+        <rect x="30" y="11" width="15" height="12" rx="3" fill="#fff"/>
+        <rect x="7" y="30" width="38" height="3" fill="#fff" opacity="0.35"/>
+        <circle cx="26" cy="38" r="4" fill="#fff"/>
+        <rect x="0" y="50" width="52" height="7" rx="3" fill="#000"/>
+        <rect x="5" y="55" width="10" height="7" rx="2" fill="#000"/>
+        <rect x="37" y="55" width="10" height="7" rx="2" fill="#000"/>
+      </svg>
     </div>
-    <div class="weather__stats">
-      <div class="weather__stat">
-        <span class="weather__stat-label">High</span>
-        <span class="weather__stat-value">{{ high_c }}°</span>
+    <div class="transit-info">
+      <div class="transit-label">沼袋駅 Seibu-Shinjuku line to Shinjuku Station</div>
+      <div class="transit-times">
+        <span class="time-primary">{{ train_display }}</span>
+        <span class="time-sep">|</span>
+        <span class="time-secondary">{{ train_time2 }}</span>
+        <span class="time-sep">|</span>
+        <span class="time-secondary">{{ train_time3 }}</span>
       </div>
-      <div class="weather__stat">
-        <span class="weather__stat-label">Low</span>
-        <span class="weather__stat-value">{{ low_c }}°</span>
+    </div>
+  </div>
+
+  <div class="transit-row">
+    <div class="transit-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="52" height="62" viewBox="0 0 52 62">
+        <rect x="2" y="2" width="48" height="48" rx="7" fill="#000"/>
+        <rect x="7" y="8" width="38" height="14" rx="3" fill="#fff"/>
+        <rect x="7" y="28" width="17" height="12" rx="2" fill="#fff"/>
+        <rect x="28" y="28" width="17" height="12" rx="2" fill="#fff"/>
+        <circle cx="13" cy="56" r="6" fill="#000"/>
+        <circle cx="39" cy="56" r="6" fill="#000"/>
+        <circle cx="13" cy="56" r="3" fill="#fff"/>
+        <circle cx="39" cy="56" r="3" fill="#fff"/>
+      </svg>
+    </div>
+    <div class="transit-info">
+      <div class="transit-label">哲学堂公園 Bus to Nakano Station</div>
+      <div class="transit-times">
+        <span class="time-primary">{{ bus_display }}</span>
+        <span class="time-sep">|</span>
+        <span class="time-secondary">{{ bus_time2 }}</span>
+        <span class="time-sep">|</span>
+        <span class="time-secondary">{{ bus_time3 }}</span>
       </div>
-      <div class="weather__stat">
-        <span class="weather__stat-label">Humidity</span>
-        <span class="weather__stat-value">{{ humidity_pct }}%</span>
-      </div>
+    </div>
+  </div>
+
+  <div class="weather-row">
+    <div class="weather-icon-block">
+      <span class="weather-icon">{{ weather_icon }}</span>
+      <span class="weather-label">{{ weather_label }}</span>
+    </div>
+    <div class="weather-stat">
+      <div class="stat-label">CURRENTLY</div>
+      <div class="stat-value">{{ temp_c }}°</div>
+    </div>
+    <div class="weather-stat">
+      <div class="stat-label">HIGH / LOW</div>
+      <div class="stat-value">{{ high_c }}°<span class="slash">/</span><span class="low">{{ low_c }}°</span></div>
+    </div>
+    <div class="weather-stat">
+      <div class="stat-label">HUMIDITY</div>
+      <div class="stat-value">{{ humidity_pct }}%</div>
+    </div>
+    <div class="weather-stat">
+      <div class="stat-label">RAIN</div>
+      <div class="stat-value">{{ rain_pct }}%</div>
+    </div>
+    <div class="weather-stat">
+      <div class="stat-label">FEELS LIKE</div>
+      <div class="stat-value">{{ feels_like_c }}°</div>
     </div>
   </div>
 

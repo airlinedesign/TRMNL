@@ -17,8 +17,8 @@ from datetime import datetime, timezone, timedelta
 WALK_MINUTES  = 9          # minutes from home to train platform
 WALK_TO_BUS   = 4          # minutes from home to bus stop
 BUS_RIDE      = 5          # minutes from 哲学堂公園入口 to Nakano Station
-SHOW_TRAINS   = 2
-SHOW_BUSES    = 2
+SHOW_TRAINS   = 3
+SHOW_BUSES    = 3
 TIMEZONE      = timezone(timedelta(hours=9))   # JST
 
 # Nakano, Tokyo
@@ -130,6 +130,12 @@ def fmt_mins(m: int) -> str:
     return f"{h}h {rem}m" if rem else f"{h}h"
 
 
+def ordinal(n: int) -> str:
+    if 11 <= n <= 13:
+        return "th"
+    return ["th", "st", "nd", "rd", "th"][min(n % 10, 4)]
+
+
 def fmt_leave_time(dep_min: int, walk: int) -> str:
     """Return 'leave by H:MMam/pm' for the minute you need to leave home."""
     leave_min = (dep_min - walk) % (24 * 60)
@@ -137,6 +143,15 @@ def fmt_leave_time(dep_min: int, walk: int) -> str:
     suffix = "am" if h < 12 else "pm"
     hour   = h % 12 or 12
     return f"leave by {hour}:{m:02d}{suffix}"
+
+
+def fmt_time_short(dep_min: int, walk: int) -> str:
+    """Return just 'H:MMam/pm' without the 'leave by' prefix."""
+    leave_min = (dep_min - walk) % (24 * 60)
+    h, m = divmod(leave_min, 60)
+    suffix = "am" if h < 12 else "pm"
+    hour   = h % 12 or 12
+    return f"{hour}:{m:02d}{suffix}"
 
 
 def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
@@ -172,6 +187,7 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
             "catchable":            leave_in >= 0,
             "leave_display":        leave_display,
             "next_display":         fmt_leave_time(dep_min, WALK_MINUTES) if leave_in > 0 else "",
+            "time_short":           fmt_time_short(dep_min, WALK_MINUTES),
         })
         if len(results) == count:
             break
@@ -206,6 +222,7 @@ def next_buses(now: datetime, count: int = SHOW_BUSES) -> list:
             "catchable":            leave_in >= 0,
             "leave_display":        leave_display,
             "next_display":         fmt_leave_time(dep_min, WALK_TO_BUS) if leave_in > 0 else "",
+            "time_short":           fmt_time_short(dep_min, WALK_TO_BUS),
         })
         if len(results) == count:
             break
@@ -224,7 +241,7 @@ def fetch_weather(lat: float, lon: float) -> dict:
         f"&current=temperature_2m,apparent_temperature,weathercode,"
         f"windspeed_10m,precipitation,relative_humidity_2m"
         f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,"
-        f"weathercode"
+        f"weathercode,precipitation_probability_max"
         f"&timezone=Asia%2FTokyo"
         f"&forecast_days=1"
     )
@@ -270,6 +287,7 @@ def fetch_weather(lat: float, lon: float) -> dict:
         "low_c":         round((daily["temperature_2m_min"] or [0])[0]),
         "umbrella":      umbrella,
         "precip_mm":     round(daily_precip, 1),
+        "rain_pct":      round((daily.get("precipitation_probability_max") or [0])[0] or 0),
     }
 
 
@@ -282,31 +300,37 @@ def main():
     buses   = next_buses(now)
     weather = fetch_weather(LAT, LON)
 
-    next_t = trains[0] if trains else None
-    if next_t:
-        if next_t["leave_home_in"] <= 0:
-            headline = "Leave NOW" if next_t["minutes_until_depart"] > 0 else "Train departed"
-        else:
-            headline = next_t["leave_display"]
-    else:
-        headline = "No more trains today"
+    day_names = ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"]
+    month_names = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
+                   "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
 
-    day_type = "Weekday" if now.weekday() < 5 else "Weekend"
+    date_main    = f"{day_names[now.weekday()]} {month_names[now.month - 1]} {now.day}"
+    date_ordinal = ordinal(now.day)
+    last_update  = fmt_time_short(now.hour * 60 + now.minute, 0)
+
+    def t(i, field):
+        return trains[i][field] if len(trains) > i else ""
+    def b(i, field):
+        return buses[i][field] if len(buses) > i else ""
 
     payload = {
-        "generated_at":   now.strftime("%H:%M JST"),
-        "day_type":       day_type,
-        "train_display":  trains[0]["leave_display"] if trains else "No more trains",
-        "train_next":     trains[1]["next_display"]  if len(trains) > 1 else "",
-        "bus_display":    buses[0]["leave_display"]  if buses else "No more buses",
-        "bus_next":       buses[1]["next_display"]   if len(buses) > 1 else "",
+        "date_main":      date_main,
+        "date_ordinal":   date_ordinal,
+        "last_update":    last_update,
+        "train_display":  t(0, "leave_display") or "No more trains",
+        "train_time2":    t(1, "time_short"),
+        "train_time3":    t(2, "time_short"),
+        "bus_display":    b(0, "leave_display") or "No more buses",
+        "bus_time2":      b(1, "time_short"),
+        "bus_time3":      b(2, "time_short"),
         "temp_c":         weather["temp_c"],
         "feels_like_c":   weather["feels_like_c"],
-        "description":    weather["description"],
         "high_c":         weather["high_c"],
         "low_c":          weather["low_c"],
         "humidity_pct":   weather["humidity_pct"],
-        "weather_icon":   "☂" if weather["umbrella"] else "🎩",
+        "rain_pct":       weather["rain_pct"],
+        "weather_icon":   "☂" if weather["umbrella"] else "☀",
+        "weather_label":  "BRING" if weather["umbrella"] else "ENJOY",
     }
 
     import os
