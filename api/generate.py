@@ -312,12 +312,17 @@ def main():
     webhook_url = os.environ.get("TRMNL_WEBHOOK_URL")
     if webhook_url:
         body = json.dumps({"merge_variables": payload}).encode()
+        print(f"Posting {len(body)} bytes to {webhook_url[:50]}...")
         req  = urllib.request.Request(
             webhook_url, data=body, method="POST",
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(req) as r:
-            print(f"✓ Pushed to TRMNL: {r.status} — {payload['train_display']}")
+        try:
+            with urllib.request.urlopen(req) as r:
+                print(f"✓ Pushed to TRMNL: {r.status} — {payload['train_display']}")
+        except urllib.error.HTTPError as e:
+            print(f"✗ HTTP {e.code}: {e.reason}")
+            print(e.read().decode())
     else:
         with open("api/data.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
