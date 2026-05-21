@@ -217,8 +217,10 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         pass
 
     # Build trip_id → route_short_name map
+    raw_routes = read_csv("routes.txt")
+    print(f"Sample routes: {[(r.get('route_id'), r.get('route_short_name'), r.get('route_long_name')) for r in raw_routes[:5]]}")
     routes_map = {r["route_id"]: r.get("route_short_name", r["route_id"])
-                  for r in read_csv("routes.txt")}
+                  for r in raw_routes}
     trip_route = {}
     for r in read_csv("trips.txt"):
         if r["service_id"] in services and "中野" in r.get("trip_headsign", ""):
