@@ -216,23 +216,28 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
     except KeyError:
         pass
 
-    # Find trip_ids heading toward Nakano (headsign contains 中野)
-    trips = {r["trip_id"] for r in read_csv("trips.txt")
-             if r["service_id"] in services
-             and "中野" in r.get("trip_headsign", "")}
+    # Build trip_id → route_short_name map
+    routes_map = {r["route_id"]: r.get("route_short_name", r["route_id"])
+                  for r in read_csv("routes.txt")}
+    trip_route = {}
+    for r in read_csv("trips.txt"):
+        if r["service_id"] in services and "中野" in r.get("trip_headsign", ""):
+            trip_route[r["trip_id"]] = routes_map.get(r["route_id"], "")
+    trips = set(trip_route.keys())
     print(f"Valid southbound trips today: {len(trips)}")
 
-    # Get departure times from our stop
-    now_min  = now.hour * 60 + now.minute
-    dep_mins = []
+    # Get departure times + route numbers from our stop
+    now_min   = now.hour * 60 + now.minute
+    dep_items = {}  # dep_min → route_short_name
     for r in read_csv("stop_times.txt"):
         if r["stop_id"] in stop_ids and r["trip_id"] in trips:
             t = r.get("departure_time") or r.get("arrival_time","")
             if t:
                 h, m = int(t.split(":")[0]), int(t.split(":")[1])
-                dep_mins.append(h * 60 + m)
+                dep_min = h * 60 + m
+                dep_items[dep_min] = trip_route.get(r["trip_id"], "")
 
-    dep_mins = sorted(set(dep_mins))
+    dep_mins = sorted(dep_items.keys())
     print(f"Departures found: {len(dep_mins)}")
 
     results = []
@@ -241,10 +246,12 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
             continue
         mins_until = dep_min - now_min
         leave_in   = mins_until - WALK_TO_BUS
+        route      = dep_items.get(dep_min, "")
+        route_tag  = f" ({route})" if route else ""
         if leave_in <= 0:
             leave_display = "Leave NOW" if mins_until > 0 else "Bus departed"
         else:
-            leave_display = fmt_leave_time(dep_min, WALK_TO_BUS)
+            leave_display = fmt_leave_time(dep_min, WALK_TO_BUS) + route_tag
         results.append({
             "departs":              f"{dep_min//60:02d}:{dep_min%60:02d}",
             "minutes_until_depart": mins_until,
@@ -252,7 +259,7 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
             "catchable":            leave_in >= 0,
             "leave_display":        leave_display,
             "next_display":         fmt_leave_time(dep_min, WALK_TO_BUS) if leave_in > 0 else "",
-            "time_short":           fmt_time_short(dep_min, WALK_TO_BUS),
+            "time_short":           fmt_time_short(dep_min, WALK_TO_BUS) + route_tag,
         })
         if len(results) == count:
             break
