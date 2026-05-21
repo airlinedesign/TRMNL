@@ -95,7 +95,7 @@ WEEKEND = [
 ]
 
 GTFS_URL      = "https://api.odpt.org/api/v4/files/odpt/KantoBus/AllLines.zip?date=20260507"
-BUS_STOP_NAME = "哲学堂公園入口"
+BUS_STOP_NAME = "下田橋"
 # Routes from 哲学堂公園入口 that go toward Nakano Station (southbound)
 BUS_NAKANO_ROUTES = {"中10", "中12", "中20", "中24", "中27", "中30", "中41", "中43", "池11",
                      "10", "12", "20", "24", "27", "30", "41", "43"}
@@ -195,8 +195,8 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
 
     # Find stop_ids — print all stops with 哲学 to find the right name
     all_stops = read_csv("stops.txt")
-    matches = [r for r in all_stops if "哲学" in r.get("stop_name","")]
-    print(f"Stops containing 哲学: {[(r['stop_id'], r['stop_name']) for r in matches]}")
+    matches = [r for r in all_stops if "下田橋" in r.get("stop_name","")]
+    print(f"Stops containing 下田橋: {[(r['stop_id'], r['stop_name']) for r in matches]}")
     stop_ids = {r["stop_id"] for r in matches}
     print(f"Using stop IDs: {stop_ids}")
 
