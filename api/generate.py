@@ -91,7 +91,7 @@ WEEKEND = [
     (23, 10), (23, 25), (23, 40), (23, 55),
 ]
 
-ODPT_BASE     = "https://api.odpt.org/api/v4"
+ODPT_BASE     = "https://api-tokyochallenge.odpt.org/api/v4"
 BUS_STOP_NAME = "哲学堂公園入口"
 BUS_OPERATOR  = "odpt.Operator:KantoBus"
 # Routes from 哲学堂公園入口 that go toward Nakano Station
@@ -190,7 +190,7 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
 
     # Find all stop poles at 哲学堂公園入口 for Kanto Bus
     poles = fetch_odpt("odpt:BusstopPole", api_key, **{"odpt:operator": BUS_OPERATOR})
-    print(f"Total Kanto Bus poles returned: {len(poles)}")
+    print(f"Total Kanto Bus poles returned: {len(poles)} (base: {ODPT_BASE})")
     # Print all pole names to find the correct one
     names = sorted(set(p.get("dc:title", "") for p in poles))
     for n in names:
