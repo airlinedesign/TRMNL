@@ -216,13 +216,10 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
     except KeyError:
         pass
 
-    # Find trip_ids with valid service heading toward Nakano
+    # Find trip_ids heading toward Nakano (headsign contains 中野)
     trips = {r["trip_id"] for r in read_csv("trips.txt")
              if r["service_id"] in services
-             and ("中野" in r.get("trip_headsign","") or
-                  any(route in r.get("trip_headsign","") or
-                      route in r.get("route_id","")
-                      for route in BUS_NAKANO_ROUTES))}
+             and "中野" in r.get("trip_headsign", "")}
     print(f"Valid southbound trips today: {len(trips)}")
 
     # Get departure times from our stop
