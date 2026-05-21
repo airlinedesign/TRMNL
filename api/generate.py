@@ -159,10 +159,7 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
         arr_min    = dep_min + 12   # 12-min ride
         arr_h, arr_m = divmod(arr_min % (24 * 60), 60)
 
-        if leave_in <= 0:
-            leave_display = "Leave NOW" if mins_until > 0 else "Train departed"
-        else:
-            leave_display = fmt_leave_time(dep_min, WALK_MINUTES)
+        leave_display = fmt_leave_time(dep_min, WALK_MINUTES)
 
         results.append({
             "departs":              f"{h:02d}:{m:02d}",
@@ -258,10 +255,7 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         leave_in   = mins_until - WALK_TO_BUS
         route      = dep_items.get(dep_min, "")
         route_tag  = f" ({route})" if route else ""
-        if leave_in <= 0:
-            leave_display = "Leave NOW" if mins_until > 0 else "Bus departed"
-        else:
-            leave_display = fmt_leave_time(dep_min, WALK_TO_BUS) + route_tag
+        leave_display = fmt_leave_time(dep_min, WALK_TO_BUS) + route_tag
         results.append({
             "departs":              f"{dep_min//60:02d}:{dep_min%60:02d}",
             "minutes_until_depart": mins_until,
