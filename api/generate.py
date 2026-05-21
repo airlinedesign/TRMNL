@@ -217,11 +217,13 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         pass
 
     # Build trip_id → route_short_name map
+    import re
     def short_route(name: str) -> str:
-        # Convert full-width chars to ASCII (！=0xFF01 … ～=0xFF5E)
+        # Convert full-width digits/letters to ASCII
         half = ''.join(chr(ord(c) - 0xFEE0) if '！' <= c <= '～' else c for c in name)
-        # Strip leading 中 prefix and whitespace
-        return half.lstrip('中').strip() or name
+        # Extract just the digits
+        m = re.search(r'\d+', half)
+        return m.group(0) if m else half.strip()
 
     raw_routes = read_csv("routes.txt")
     routes_map = {r["route_id"]: short_route(r.get("route_short_name") or r["route_id"])
