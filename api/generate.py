@@ -190,6 +190,17 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
 
     # Find all stop poles at 哲学堂公園入口 for Kanto Bus
     poles = fetch_odpt("odpt:BusstopPole", api_key, **{"odpt:operator": BUS_OPERATOR})
+    print(f"Total Kanto Bus poles returned: {len(poles)}")
+    # Print all pole names to find the correct one
+    names = sorted(set(p.get("dc:title", "") for p in poles))
+    for n in names:
+        if "哲" in n or "哲学" in n or "tetsugaku" in n.lower():
+            print(f"  MATCH: {n}")
+    if not names:
+        print("  No poles found — check operator ID or API key permissions")
+    else:
+        # Print a sample to verify poles are loading
+        print(f"  Sample pole names: {names[:5]}")
     target = [p["owl:sameAs"] for p in poles if p.get("dc:title") == BUS_STOP_NAME]
     print(f"Found {len(target)} pole(s) for {BUS_STOP_NAME}: {target}")
 
