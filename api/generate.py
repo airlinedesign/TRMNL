@@ -8,8 +8,11 @@ Weather:  Open-Meteo (Nakano, Tokyo) — no API key required
 Walk:     9 minutes to Numabukuro station
 """
 
+import csv
+import io
 import json
 import urllib.request
+import zipfile
 from datetime import datetime, timezone, timedelta
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -91,10 +94,9 @@ WEEKEND = [
     (23, 10), (23, 25), (23, 40), (23, 55),
 ]
 
-ODPT_BASE     = "https://api-tokyochallenge.odpt.org/api/v4"
+GTFS_URL      = "https://api.odpt.org/api/v4/files/odpt/KantoBus/AllLines.zip?date=20260507"
 BUS_STOP_NAME = "哲学堂公園入口"
-BUS_OPERATOR  = "odpt.Operator:KantoBus"
-# Routes from 哲学堂公園入口 that go toward Nakano Station
+# Routes from 哲学堂公園入口 that go toward Nakano Station (southbound)
 BUS_NAKANO_ROUTES = {"中10", "中12", "中30", "中41", "池11"}
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -177,51 +179,60 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
     return results
 
 
-def fetch_odpt(path: str, api_key: str, **params) -> list:
-    qs = "&".join(f"{k}={v}" for k, v in params.items())
-    url = f"{ODPT_BASE}/{path}?acl:consumerKey={api_key}&{qs}"
+def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
+    # Download Kanto Bus GTFS zip
+    url = f"{GTFS_URL}&acl:consumerKey={api_key}"
     req = urllib.request.Request(url, headers={
         "User-Agent": "Mozilla/5.0 (compatible; TRMNL-Dashboard/1.0)",
     })
-    with urllib.request.urlopen(req, timeout=15) as r:
-        return json.loads(r.read())
+    with urllib.request.urlopen(req, timeout=30) as r:
+        zf = zipfile.ZipFile(io.BytesIO(r.read()))
 
+    def read_csv(name):
+        with zf.open(name) as f:
+            return list(csv.DictReader(io.TextIOWrapper(f, encoding="utf-8-sig")))
 
-def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
-    now_min = now.hour * 60 + now.minute
-    cal = "odpt.Calendar:Weekday" if now.weekday() < 5 else "odpt.Calendar:SaturdayHoliday"
+    # Find stop_ids for 哲学堂公園入口
+    stop_ids = {r["stop_id"] for r in read_csv("stops.txt")
+                if BUS_STOP_NAME in r.get("stop_name", "")}
+    print(f"Stop IDs for {BUS_STOP_NAME}: {stop_ids}")
 
-    # Search by stop name across all operators
-    import urllib.parse
-    poles = fetch_odpt("odpt:BusstopPole", api_key,
-                       **{"dc:title": urllib.parse.quote(BUS_STOP_NAME)})
-    print(f"Poles named '{BUS_STOP_NAME}': {len(poles)}")
-    for p in poles:
-        print(f"  {p.get('owl:sameAs')} operator={p.get('odpt:operator')}")
-    target = [p["owl:sameAs"] for p in poles]
-    print(f"Found {len(target)} pole(s): {target}")
+    # Determine valid services for today
+    today    = now.strftime("%Y%m%d")
+    day_col  = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"][now.weekday()]
+    services = {r["service_id"] for r in read_csv("calendar.txt")
+                if r.get(day_col) == "1"
+                and r.get("start_date","") <= today <= r.get("end_date","")}
+    try:
+        for r in read_csv("calendar_dates.txt"):
+            if r.get("date") == today:
+                if r.get("exception_type") == "1":
+                    services.add(r["service_id"])
+                elif r.get("exception_type") == "2":
+                    services.discard(r["service_id"])
+    except KeyError:
+        pass
 
-    # Collect all departure minutes from timetables toward Nakano
+    # Find trip_ids with valid service heading toward Nakano
+    trips = {r["trip_id"] for r in read_csv("trips.txt")
+             if r["service_id"] in services
+             and any(route in r.get("trip_headsign","") or
+                     route in r.get("route_id","")
+                     for route in BUS_NAKANO_ROUTES)}
+    print(f"Valid southbound trips today: {len(trips)}")
+
+    # Get departure times from our stop
+    now_min  = now.hour * 60 + now.minute
     dep_mins = []
-    for pole_id in target:
-        try:
-            timetables = fetch_odpt("odpt:BusTimetable", api_key,
-                **{"odpt:busstopPole": pole_id, "odpt:calendar": cal,
-                   "odpt:operator": BUS_OPERATOR})
-            for tt in timetables:
-                pattern = tt.get("odpt:busroutePattern", "")
-                route   = tt.get("dc:title", "")
-                print(f"  Route: {route} pattern: {pattern}")
-                for obj in tt.get("odpt:busTimetableObject", []):
-                    t = obj.get("odpt:departureTime") or obj.get("odpt:arrivalTime")
-                    if t:
-                        h, m = map(int, t.split(":"))
-                        dep_mins.append(h * 60 + m)
-        except Exception as e:
-            print(f"  Error fetching timetable for {pole_id}: {e}")
+    for r in read_csv("stop_times.txt"):
+        if r["stop_id"] in stop_ids and r["trip_id"] in trips:
+            t = r.get("departure_time") or r.get("arrival_time","")
+            if t:
+                h, m = int(t.split(":")[0]), int(t.split(":")[1])
+                dep_mins.append(h * 60 + m)
 
-    dep_mins.sort()
-    print(f"Total departures found: {len(dep_mins)}")
+    dep_mins = sorted(set(dep_mins))
+    print(f"Departures found: {len(dep_mins)}")
 
     results = []
     for dep_min in dep_mins:
@@ -229,12 +240,10 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
             continue
         mins_until = dep_min - now_min
         leave_in   = mins_until - WALK_TO_BUS
-
         if leave_in <= 0:
             leave_display = "Leave NOW" if mins_until > 0 else "Bus departed"
         else:
             leave_display = fmt_leave_time(dep_min, WALK_TO_BUS)
-
         results.append({
             "departs":              f"{dep_min//60:02d}:{dep_min%60:02d}",
             "minutes_until_depart": mins_until,
