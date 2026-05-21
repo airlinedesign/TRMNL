@@ -193,10 +193,12 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         with zf.open(name) as f:
             return list(csv.DictReader(io.TextIOWrapper(f, encoding="utf-8-sig")))
 
-    # Find stop_ids for 哲学堂公園入口
-    stop_ids = {r["stop_id"] for r in read_csv("stops.txt")
-                if BUS_STOP_NAME in r.get("stop_name", "")}
-    print(f"Stop IDs for {BUS_STOP_NAME}: {stop_ids}")
+    # Find stop_ids — print all stops with 哲学 to find the right name
+    all_stops = read_csv("stops.txt")
+    matches = [r for r in all_stops if "哲学" in r.get("stop_name","")]
+    print(f"Stops containing 哲学: {[(r['stop_id'], r['stop_name']) for r in matches]}")
+    stop_ids = {r["stop_id"] for r in matches}
+    print(f"Using stop IDs: {stop_ids}")
 
     # Determine valid services for today
     today    = now.strftime("%Y%m%d")
