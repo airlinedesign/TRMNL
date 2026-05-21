@@ -247,6 +247,16 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
     print(f"Departures found: {len(dep_mins)}")
     print(f"Routes at stop: {sorted(set(dep_items.values()))}")
 
+    # Debug: show headsigns of all trips serving our stop regardless of filter
+    all_trips_at_stop = set()
+    for r in read_csv("stop_times.txt"):
+        if r["stop_id"] in stop_ids:
+            all_trips_at_stop.add(r["trip_id"])
+    all_trip_rows = {r["trip_id"]: r for r in read_csv("trips.txt")
+                     if r["trip_id"] in all_trips_at_stop and r["service_id"] in services}
+    headsigns = sorted(set(r.get("trip_headsign","") for r in all_trip_rows.values()))
+    print(f"All headsigns at stop today: {headsigns}")
+
     results = []
     for dep_min in dep_mins:
         if dep_min < now_min - 2:
