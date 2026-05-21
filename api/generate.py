@@ -188,26 +188,15 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
     now_min = now.hour * 60 + now.minute
     cal = "odpt.Calendar:Weekday" if now.weekday() < 5 else "odpt.Calendar:SaturdayHoliday"
 
-    # Find all stop poles — no operator filter to test API access
-    poles = fetch_odpt("odpt:BusstopPole", api_key)
-    print(f"Total poles returned (no filter): {len(poles)} (base: {ODPT_BASE})")
-    if poles:
-        operators = sorted(set(p.get("odpt:operator","") for p in poles))
-        print(f"  Available operators: {operators[:10]}")
-        tetsugaku = [p for p in poles if "哲学" in p.get("dc:title","")]
-        print(f"  Poles with 哲学 in name: {[p['dc:title'] for p in tetsugaku]}")
-    # Print all pole names to find the correct one
-    names = sorted(set(p.get("dc:title", "") for p in poles))
-    for n in names:
-        if "哲" in n or "哲学" in n or "tetsugaku" in n.lower():
-            print(f"  MATCH: {n}")
-    if not names:
-        print("  No poles found — check operator ID or API key permissions")
-    else:
-        # Print a sample to verify poles are loading
-        print(f"  Sample pole names: {names[:5]}")
-    target = [p["owl:sameAs"] for p in poles if p.get("dc:title") == BUS_STOP_NAME]
-    print(f"Found {len(target)} pole(s) for {BUS_STOP_NAME}: {target}")
+    # Search by stop name across all operators
+    import urllib.parse
+    poles = fetch_odpt("odpt:BusstopPole", api_key,
+                       **{"dc:title": urllib.parse.quote(BUS_STOP_NAME)})
+    print(f"Poles named '{BUS_STOP_NAME}': {len(poles)}")
+    for p in poles:
+        print(f"  {p.get('owl:sameAs')} operator={p.get('odpt:operator')}")
+    target = [p["owl:sameAs"] for p in poles]
+    print(f"Found {len(target)} pole(s): {target}")
 
     # Collect all departure minutes from timetables toward Nakano
     dep_mins = []
