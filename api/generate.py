@@ -188,9 +188,14 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
     now_min = now.hour * 60 + now.minute
     cal = "odpt.Calendar:Weekday" if now.weekday() < 5 else "odpt.Calendar:SaturdayHoliday"
 
-    # Find all stop poles at 哲学堂公園入口 for Kanto Bus
-    poles = fetch_odpt("odpt:BusstopPole", api_key, **{"odpt:operator": BUS_OPERATOR})
-    print(f"Total Kanto Bus poles returned: {len(poles)} (base: {ODPT_BASE})")
+    # Find all stop poles — no operator filter to test API access
+    poles = fetch_odpt("odpt:BusstopPole", api_key)
+    print(f"Total poles returned (no filter): {len(poles)} (base: {ODPT_BASE})")
+    if poles:
+        operators = sorted(set(p.get("odpt:operator","") for p in poles))
+        print(f"  Available operators: {operators[:10]}")
+        tetsugaku = [p for p in poles if "哲学" in p.get("dc:title","")]
+        print(f"  Poles with 哲学 in name: {[p['dc:title'] for p in tetsugaku]}")
     # Print all pole names to find the correct one
     names = sorted(set(p.get("dc:title", "") for p in poles))
     for n in names:
