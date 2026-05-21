@@ -217,9 +217,13 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         pass
 
     # Build trip_id → route_short_name map
+    import re
+    def short_route(name: str) -> str:
+        m = re.match(r"(\d+)号", name)
+        return m.group(1) if m else name.split()[0]
+
     raw_routes = read_csv("routes.txt")
-    print(f"Sample routes: {[(r.get('route_id'), r.get('route_short_name'), r.get('route_long_name')) for r in raw_routes[:5]]}")
-    routes_map = {r["route_id"]: r.get("route_short_name", r["route_id"])
+    routes_map = {r["route_id"]: short_route(r.get("route_short_name") or r["route_id"])
                   for r in raw_routes}
     trip_route = {}
     for r in read_csv("trips.txt"):
@@ -241,6 +245,7 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
 
     dep_mins = sorted(dep_items.keys())
     print(f"Departures found: {len(dep_mins)}")
+    print(f"Routes at stop: {sorted(set(dep_items.values()))}")
 
     results = []
     for dep_min in dep_mins:
