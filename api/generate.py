@@ -254,7 +254,7 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         leave_in   = mins_until - WALK_TO_BUS
         route      = dep_items.get(dep_min, "")
         route_tag  = f" ({route})" if route else ""
-        leave_display = fmt_leave_time(dep_min, WALK_TO_BUS)
+        leave_display = fmt_leave_time(dep_min, WALK_TO_BUS) + route_tag
         results.append({
             "departs":              f"{dep_min//60:02d}:{dep_min%60:02d}",
             "minutes_until_depart": mins_until,
@@ -372,6 +372,8 @@ def main():
         "low_c":          weather["low_c"],
         "humidity_pct":   weather["humidity_pct"],
         "rain_pct":       weather["rain_pct"],
+        "walk_minutes":   WALK_MINUTES,
+        "walk_to_bus":    WALK_TO_BUS,
         "weather_icon":   "☂" if weather["umbrella"] else "☀",
         "weather_label":  "BRING" if weather["umbrella"] else "ENJOY",
     }
