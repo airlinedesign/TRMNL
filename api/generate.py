@@ -255,7 +255,7 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
         leave_in   = mins_until - WALK_TO_BUS
         route      = dep_items.get(dep_min, "")
         route_tag  = f" ({route})" if route else ""
-        leave_display = fmt_leave_time(dep_min, WALK_TO_BUS) + route_tag
+        leave_display = fmt_leave_time(dep_min, WALK_TO_BUS)
         results.append({
             "departs":              f"{dep_min//60:02d}:{dep_min%60:02d}",
             "minutes_until_depart": mins_until,
