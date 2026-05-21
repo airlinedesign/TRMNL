@@ -97,7 +97,8 @@ WEEKEND = [
 GTFS_URL      = "https://api.odpt.org/api/v4/files/odpt/KantoBus/AllLines.zip?date=20260507"
 BUS_STOP_NAME = "哲学堂公園入口"
 # Routes from 哲学堂公園入口 that go toward Nakano Station (southbound)
-BUS_NAKANO_ROUTES = {"中10", "中12", "中30", "中41", "池11"}
+BUS_NAKANO_ROUTES = {"中10", "中12", "中20", "中24", "中27", "中30", "中41", "中43", "池11",
+                     "10", "12", "20", "24", "27", "30", "41", "43"}
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -216,9 +217,10 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
     # Find trip_ids with valid service heading toward Nakano
     trips = {r["trip_id"] for r in read_csv("trips.txt")
              if r["service_id"] in services
-             and any(route in r.get("trip_headsign","") or
-                     route in r.get("route_id","")
-                     for route in BUS_NAKANO_ROUTES)}
+             and ("中野" in r.get("trip_headsign","") or
+                  any(route in r.get("trip_headsign","") or
+                      route in r.get("route_id","")
+                      for route in BUS_NAKANO_ROUTES))}
     print(f"Valid southbound trips today: {len(trips)}")
 
     # Get departure times from our stop
