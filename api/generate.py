@@ -180,7 +180,10 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
 def fetch_odpt(path: str, api_key: str, **params) -> list:
     qs = "&".join(f"{k}={v}" for k, v in params.items())
     url = f"{ODPT_BASE}/{path}?acl:consumerKey={api_key}&{qs}"
-    with urllib.request.urlopen(url, timeout=10) as r:
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (compatible; TRMNL-Dashboard/1.0)",
+    })
+    with urllib.request.urlopen(req, timeout=15) as r:
         return json.loads(r.read())
 
 
