@@ -91,29 +91,11 @@ WEEKEND = [
     (23, 10), (23, 25), (23, 40), (23, 55),
 ]
 
-# ── Bus timetable ─────────────────────────────────────────────────────────────
-# 関東バス 中12 — 哲学堂公園入口 → 中野駅 (southbound on Nakano Dori)
-# Source: ekitan.com (weekday schedule, verified 2025-07)
-# TODO: add actual weekend schedule; using weekday as placeholder
-BUS_12_WEEKDAY = [
-    (6, 42),
-    (7,  1), (7, 19), (7, 32), (7, 42), (7, 55),
-    (8,  7), (8, 19), (8, 32), (8, 45), (8, 58),
-    (9, 12), (9, 26), (9, 47),
-    (10,  8), (10, 31), (10, 57),
-    (11, 23), (11, 49),
-    (12, 15), (12, 41),
-    (13,  7), (13, 33),
-    (14,  0), (14, 27), (14, 54),
-    (15, 18), (15, 42),
-    (16,  6), (16, 30), (16, 54),
-    (17, 18), (17, 42),
-    (18,  6), (18, 30), (18, 54),
-    (19, 18), (19, 42),
-    (20,  7), (20, 37),
-    (21,  7), (21, 52),
-]
-BUS_12_WEEKEND = BUS_12_WEEKDAY  # placeholder until ODPT key available
+ODPT_BASE     = "https://api.odpt.org/api/v4"
+BUS_STOP_NAME = "哲学堂公園入口"
+BUS_OPERATOR  = "odpt.Operator:KantoBus"
+# Routes from 哲学堂公園入口 that go toward Nakano Station
+BUS_NAKANO_ROUTES = {"中10", "中12", "中30", "中41", "池11"}
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -195,19 +177,50 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
     return results
 
 
-def next_buses(now: datetime, count: int = SHOW_BUSES) -> list:
-    schedule = BUS_12_WEEKDAY if now.weekday() < 5 else BUS_12_WEEKEND
-    now_min  = now.hour * 60 + now.minute
+def fetch_odpt(path: str, api_key: str, **params) -> list:
+    qs = "&".join(f"{k}={v}" for k, v in params.items())
+    url = f"{ODPT_BASE}/{path}?acl:consumerKey={api_key}&{qs}"
+    with urllib.request.urlopen(url, timeout=10) as r:
+        return json.loads(r.read())
+
+
+def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
+    now_min = now.hour * 60 + now.minute
+    cal = "odpt.Calendar:Weekday" if now.weekday() < 5 else "odpt.Calendar:SaturdayHoliday"
+
+    # Find all stop poles at 哲学堂公園入口 for Kanto Bus
+    poles = fetch_odpt("odpt:BusstopPole", api_key, **{"odpt:operator": BUS_OPERATOR})
+    target = [p["owl:sameAs"] for p in poles if p.get("dc:title") == BUS_STOP_NAME]
+    print(f"Found {len(target)} pole(s) for {BUS_STOP_NAME}: {target}")
+
+    # Collect all departure minutes from timetables toward Nakano
+    dep_mins = []
+    for pole_id in target:
+        try:
+            timetables = fetch_odpt("odpt:BusTimetable", api_key,
+                **{"odpt:busstopPole": pole_id, "odpt:calendar": cal,
+                   "odpt:operator": BUS_OPERATOR})
+            for tt in timetables:
+                pattern = tt.get("odpt:busroutePattern", "")
+                route   = tt.get("dc:title", "")
+                print(f"  Route: {route} pattern: {pattern}")
+                for obj in tt.get("odpt:busTimetableObject", []):
+                    t = obj.get("odpt:departureTime") or obj.get("odpt:arrivalTime")
+                    if t:
+                        h, m = map(int, t.split(":"))
+                        dep_mins.append(h * 60 + m)
+        except Exception as e:
+            print(f"  Error fetching timetable for {pole_id}: {e}")
+
+    dep_mins.sort()
+    print(f"Total departures found: {len(dep_mins)}")
 
     results = []
-    for (h, m) in schedule:
-        dep_min = h * 60 + m
+    for dep_min in dep_mins:
         if dep_min < now_min - 2:
             continue
         mins_until = dep_min - now_min
         leave_in   = mins_until - WALK_TO_BUS
-        arr_min    = dep_min + BUS_RIDE
-        arr_h, arr_m = divmod(arr_min % (24 * 60), 60)
 
         if leave_in <= 0:
             leave_display = "Leave NOW" if mins_until > 0 else "Bus departed"
@@ -215,8 +228,7 @@ def next_buses(now: datetime, count: int = SHOW_BUSES) -> list:
             leave_display = fmt_leave_time(dep_min, WALK_TO_BUS)
 
         results.append({
-            "departs":              f"{h:02d}:{m:02d}",
-            "arrive_nakano":        f"{arr_h:02d}:{arr_m:02d}",
+            "departs":              f"{dep_min//60:02d}:{dep_min%60:02d}",
             "minutes_until_depart": mins_until,
             "leave_home_in":        leave_in,
             "catchable":            leave_in >= 0,
@@ -296,8 +308,11 @@ def fetch_weather(lat: float, lon: float) -> dict:
 def main():
     now = datetime.now(TIMEZONE)
 
+    import os
+    odpt_key = os.environ.get("ODPT_API_KEY")
+
     trains  = next_trains(now)
-    buses   = next_buses(now)
+    buses   = next_buses(now, odpt_key) if odpt_key else []
     weather = fetch_weather(LAT, LON)
 
     day_names = ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"]
@@ -333,7 +348,6 @@ def main():
         "weather_label":  "BRING" if weather["umbrella"] else "ENJOY",
     }
 
-    import os
     webhook_url = os.environ.get("TRMNL_WEBHOOK_URL")
     if webhook_url:
         body = json.dumps({"merge_variables": payload}).encode()

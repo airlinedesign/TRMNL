@@ -25,4 +25,5 @@ jobs:
       - name: Generate and push to TRMNL
         env:
           TRMNL_WEBHOOK_URL: ${{ secrets.TRMNL_WEBHOOK_URL }}
+          ODPT_API_KEY: ${{ secrets.ODPT_API_KEY }}
         run: python api/generate.py
