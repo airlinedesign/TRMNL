@@ -151,8 +151,10 @@ def next_trains(now: datetime, count: int = SHOW_TRAINS) -> list:
     results = []
     for (h, m) in schedule:
         dep_min = h * 60 + m
-        # handle wrap past midnight for very late schedules
-        if dep_min < now_min - 2:   # 2-min grace for "just missed"
+        if dep_min < now_min:
+            continue
+        leave_in_check = dep_min - now_min - WALK_MINUTES
+        if leave_in_check < 0:   # leave time already passed
             continue
         mins_until = dep_min - now_min
         leave_in   = mins_until - WALK_MINUTES
@@ -248,10 +250,12 @@ def next_buses(now: datetime, api_key: str, count: int = SHOW_BUSES) -> list:
 
     results = []
     for dep_min in dep_mins:
-        if dep_min < now_min - 2:
+        if dep_min < now_min:
+            continue
+        leave_in = dep_min - now_min - WALK_TO_BUS
+        if leave_in < 0:   # leave time already passed
             continue
         mins_until = dep_min - now_min
-        leave_in   = mins_until - WALK_TO_BUS
         route      = dep_items.get(dep_min, "")
         route_tag  = f" ({route})" if route else ""
         leave_display = fmt_leave_time(dep_min, WALK_TO_BUS) + route_tag
