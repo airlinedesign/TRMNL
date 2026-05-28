@@ -11,6 +11,8 @@ Walk:     9 minutes to Numabukuro station
 import csv
 import io
 import json
+import os
+import subprocess
 import urllib.request
 import zipfile
 from datetime import datetime, timezone, timedelta
@@ -99,6 +101,25 @@ BUS_STOP_NAME = "下田橋"
 # Routes from 哲学堂公園入口 that go toward Nakano Station (southbound)
 BUS_NAKANO_ROUTES = {"中10", "中12", "中20", "中24", "中27", "中30", "中41", "中43", "池11",
                      "10", "12", "20", "24", "27", "30", "41", "43"}
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+
+def get_secret(keychain_service: str, env_var: str) -> str | None:
+    """Try macOS Keychain first, fall back to environment variable (GitHub Actions)."""
+    val = os.environ.get(env_var)
+    if val:
+        return val
+    try:
+        result = subprocess.run(
+            ["security", "find-generic-password", "-s", keychain_service, "-w"],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except FileNotFoundError:
+        pass  # 'security' not available (non-macOS)
+    return None
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -340,8 +361,7 @@ def fetch_weather(lat: float, lon: float) -> dict:
 def main():
     now = datetime.now(TIMEZONE)
 
-    import os
-    odpt_key = os.environ.get("ODPT_API_KEY")
+    odpt_key = get_secret("trmnl-odpt-api-key", "ODPT_API_KEY")
 
     trains  = next_trains(now)
     buses   = next_buses(now, odpt_key) if odpt_key else []
@@ -382,7 +402,7 @@ def main():
         "weather_label":  "BRING" if weather["umbrella"] else "ENJOY",
     }
 
-    webhook_url = os.environ.get("TRMNL_WEBHOOK_URL")
+    webhook_url = get_secret("trmnl-webhook-url", "TRMNL_WEBHOOK_URL")
     if webhook_url:
         body = json.dumps({"merge_variables": payload}).encode()
         print(f"Posting {len(body)} bytes to {webhook_url[:50]}...")
