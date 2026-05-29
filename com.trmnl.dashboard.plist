@@ -14,9 +14,9 @@
     <key>WorkingDirectory</key>
     <string>/Users/paulpugh/TRMNL</string>
 
-    <!-- Run every 5 minutes -->
+    <!-- Run every 2 minutes -->
     <key>StartInterval</key>
-    <integer>300</integer>
+    <integer>120</integer>
 
     <!-- Also run once immediately on load -->
     <key>RunAtLoad</key>

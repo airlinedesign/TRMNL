@@ -417,14 +417,14 @@ def main():
         )
         try:
             with urllib.request.urlopen(req) as r:
-                print(f"✓ Pushed to TRMNL: {r.status} — {payload['train_display']}")
+                print(f"[{now.strftime('%H:%M:%S')}] ✓ Pushed to TRMNL: {r.status} — {payload['train_display']}")
         except urllib.error.HTTPError as e:
-            print(f"✗ HTTP {e.code}: {e.reason}")
+            print(f"[{now.strftime('%H:%M:%S')}] ✗ HTTP {e.code}: {e.reason}")
             print(e.read().decode())
     else:
         with open("api/data.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-        print(f"✓ Written to data.json — {payload['train_display']}")
+        print(f"[{now.strftime('%H:%M:%S')}] ✓ Written to data.json — {payload['train_display']}")
 
 
 if __name__ == "__main__":
